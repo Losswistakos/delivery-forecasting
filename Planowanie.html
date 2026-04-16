@@ -909,6 +909,7 @@
         const CAPACITY_UTILIZATION_RATE = 0.8; // We plan capacity expecting 80% completion rate
         const MONTHS_PER_QUARTER = 3;
         const QUARTER_SORT_MULTIPLIER = 10; // Creates sortable keys like 20241 for Q1 2024
+        const LABEL_ROTATION_ANGLE = -Math.PI / 4; // 45 degrees for chart labels
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1700,16 +1701,24 @@
             const canvas = document.getElementById('burndownChart');
             const ctx = canvas.getContext('2d');
             
-            // Set canvas size
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+            // Set canvas size with DPI scaling for crisp rendering
+            const dpr = window.devicePixelRatio || 1;
+            const displayWidth = canvas.offsetWidth;
+            const displayHeight = canvas.offsetHeight;
+            
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+            
+            ctx.scale(dpr, dpr);
             
             const padding = 60;
-            const chartWidth = canvas.width - 2 * padding;
-            const chartHeight = canvas.height - 2 * padding;
+            const chartWidth = displayWidth - 2 * padding;
+            const chartHeight = displayHeight - 2 * padding;
             
             // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, displayWidth, displayHeight);
             
             // Get data
             const burnValues = sprints.map(s => s.liczbaUkonczonychSP);
@@ -1720,8 +1729,16 @@
             const median = calculateMedian(burnValues);
             const trend = calculateTrendLine(burnValues);
             
-            // Find min and max for scaling
-            const maxValue = Math.max(...burnValues, avg, median, ...trend) * 1.1;
+            // Find min and max for scaling - handle edge cases
+            let maxValue = 0;
+            if (burnValues.length > 0) {
+                maxValue = Math.max(
+                    Math.max.apply(null, burnValues),
+                    avg,
+                    median,
+                    Math.max.apply(null, trend)
+                ) * 1.1;
+            }
             const minValue = 0;
             
             // Draw axes
@@ -1735,11 +1752,16 @@
             
             // Helper function to get Y position
             const getY = (value) => {
+                if (maxValue === 0) return padding + chartHeight;
                 return padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
             };
             
             // Helper function to get X position
             const getX = (index) => {
+                // Handle single element case
+                if (burnValues.length === 1) {
+                    return padding + chartWidth / 2;
+                }
                 return padding + (index / (burnValues.length - 1)) * chartWidth;
             };
             
@@ -1818,7 +1840,7 @@
                 const x = getX(index);
                 ctx.save();
                 ctx.translate(x, padding + chartHeight + 15);
-                ctx.rotate(-Math.PI / 4);
+                ctx.rotate(LABEL_ROTATION_ANGLE);
                 ctx.fillText(label, 0, 0);
                 ctx.restore();
             });
