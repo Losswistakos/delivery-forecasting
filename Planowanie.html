@@ -577,7 +577,7 @@
                 </div>
                 <div class="filter-group">
                     <label for="filterQuarter">Kwartał</label>
-                    <select id="filterQuarter" onchange="applyFilters()" multiple size="5">
+                    <select id="filterQuarter" onchange="applyFilters()" multiple size="4">
                         <option value="Q1">Q1</option>
                         <option value="Q2">Q2</option>
                         <option value="Q3">Q3</option>
@@ -803,6 +803,10 @@
     <script>
         let sprintsData = { sprints: [] };
         let currentFilters = { year: '', quarters: [] };
+        
+        // Constants
+        const CAPACITY_UTILIZATION_RATE = 0.8; // Target 80% of burn rate for capacity planning
+        const MONTHS_PER_QUARTER = 3;
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1274,7 +1278,7 @@
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth() + 1;
-            const quarter = Math.ceil(month / 3);
+            const quarter = Math.ceil(month / MONTHS_PER_QUARTER);
             return `Q${quarter} ${year}`;
         }
 
@@ -1356,9 +1360,9 @@
             const avg = calculateAverage(burnValues);
             const median = calculateMedian(burnValues);
             
-            // Calculate 80% values (capacity = value / 0.8)
-            const capacityFromAvg = avg / 0.8;
-            const capacityFromMedian = median / 0.8;
+            // Calculate capacity values (target capacity = burn rate / utilization rate)
+            const capacityFromAvg = avg / CAPACITY_UTILIZATION_RATE;
+            const capacityFromMedian = median / CAPACITY_UTILIZATION_RATE;
             
             // Update display
             document.getElementById(`cap-${scopeId}-avg`).textContent = capacityFromAvg.toFixed(1) + ' SP';
