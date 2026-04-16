@@ -805,7 +805,7 @@
         let currentFilters = { year: '', quarters: [] };
         
         // Constants
-        const CAPACITY_UTILIZATION_RATE = 0.8; // Target 80% of burn rate for capacity planning
+        const CAPACITY_UTILIZATION_RATE = 0.8; // We plan capacity expecting 80% completion rate
         const MONTHS_PER_QUARTER = 3;
 
         // Load data on page load
@@ -1293,9 +1293,24 @@
             const validSprints = getValidSprints();
             if (validSprints.length === 0) return [];
             
-            // Get unique quarters sorted by date
-            const quarters = [...new Set(validSprints.map(s => s.kwartal))];
-            const lastQuarters = quarters.slice(-n);
+            // Get unique quarters and sort them chronologically
+            const quarterMap = new Map();
+            validSprints.forEach(sprint => {
+                const match = sprint.kwartal.match(/(Q[1-4])\s+(\d{4})/);
+                if (match) {
+                    const quarter = match[1];
+                    const year = parseInt(match[2], 10);
+                    const quarterNum = parseInt(quarter.substring(1), 10);
+                    const sortKey = year * 10 + quarterNum; // e.g., 20251 for Q1 2025
+                    quarterMap.set(sprint.kwartal, sortKey);
+                }
+            });
+            
+            // Sort quarters chronologically
+            const sortedQuarters = [...new Set(validSprints.map(s => s.kwartal))]
+                .sort((a, b) => (quarterMap.get(a) || 0) - (quarterMap.get(b) || 0));
+            
+            const lastQuarters = sortedQuarters.slice(-n);
             
             return validSprints.filter(sprint => lastQuarters.includes(sprint.kwartal));
         }
@@ -1360,7 +1375,9 @@
             const avg = calculateAverage(burnValues);
             const median = calculateMedian(burnValues);
             
-            // Calculate capacity values (target capacity = burn rate / utilization rate)
+            // Calculate planned capacity based on historical burn rates
+            // Formula: If we historically complete 'avg' SP at 80% utilization,
+            // we should plan for (avg / 0.8) SP to achieve target utilization
             const capacityFromAvg = avg / CAPACITY_UTILIZATION_RATE;
             const capacityFromMedian = median / CAPACITY_UTILIZATION_RATE;
             
