@@ -804,6 +804,10 @@
         function editSprint(index) {
             const sprint = sprintsData.sprints[index];
             
+            // Open modal first
+            document.getElementById('addSprintModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
             // Set modal title
             document.getElementById('modalTitle').textContent = 'Edytuj sprint';
             
@@ -827,9 +831,6 @@
             document.getElementById('liczbaUkonczonychSP').value = sprint.liczbaUkonczonychSP;
             document.getElementById('celSpelniony').checked = sprint.celSpelniony;
             document.getElementById('nieUwzgledniaj').checked = sprint.nieUwzgledniaj;
-            
-            // Open modal in edit mode
-            openModal(true);
         }
 
         // Delete sprint
