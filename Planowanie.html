@@ -391,9 +391,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="liczbaUkonczonych SP" class="required">Liczba ukończonych story points</label>
-                    <input type="number" id="liczbaUkonczonych SP" name="liczbaUkonczonych SP" min="0" required>
-                    <div class="error-message" id="liczbaUkonczonych SP-error">To pole jest wymagane</div>
+                    <label for="liczbaUkonczonychSP" class="required">Liczba ukończonych story points</label>
+                    <input type="number" id="liczbaUkonczonychSP" name="liczbaUkonczonychSP" min="0" required>
+                    <div class="error-message" id="liczbaUkonczonychSP-error">To pole jest wymagane</div>
                 </div>
 
                 <div class="form-group">
@@ -468,7 +468,7 @@
                     <td>${formatDate(sprint.dataZakonczenia)}</td>
                     <td>${sprint.kwartal}</td>
                     <td class="numeric">${sprint.liczbaPlanowanychSP || '-'}</td>
-                    <td class="numeric">${sprint['liczbaUkonczonych SP']}</td>
+                    <td class="numeric">${sprint.liczbaUkonczonychSP}</td>
                     <td class="center">
                         <span class="status-badge ${sprint.celSpelniony ? 'success' : 'failure'}">
                             ${sprint.celSpelniony ? 'Tak' : 'Nie'}
@@ -543,7 +543,7 @@
         // Validate form
         function validateForm() {
             let isValid = true;
-            const requiredFields = ['numerSprintu', 'dataRozpoczecia', 'kwartal', 'liczbaUkonczonych SP'];
+            const requiredFields = ['numerSprintu', 'dataRozpoczecia', 'kwartal', 'liczbaUkonczonychSP'];
             
             requiredFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
@@ -575,7 +575,7 @@
                 kwartal: document.getElementById('kwartal').value,
                 liczbaPlanowanychSP: document.getElementById('liczbaPlanowanychSP').value ? 
                     parseInt(document.getElementById('liczbaPlanowanychSP').value) : null,
-                'liczbaUkonczonych SP': parseInt(document.getElementById('liczbaUkonczonych SP').value),
+                liczbaUkonczonychSP: parseInt(document.getElementById('liczbaUkonczonychSP').value),
                 celSpelniony: document.getElementById('celSpelniony').checked,
                 nieUwzgledniaj: document.getElementById('nieUwzgledniaj').checked
             };
