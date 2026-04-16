@@ -807,6 +807,7 @@
         // Constants
         const CAPACITY_UTILIZATION_RATE = 0.8; // We plan capacity expecting 80% completion rate
         const MONTHS_PER_QUARTER = 3;
+        const QUARTER_SORT_MULTIPLIER = 10; // Creates sortable keys like 20241 for Q1 2024
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1301,7 +1302,7 @@
                     const quarter = match[1];
                     const year = parseInt(match[2], 10);
                     const quarterNum = parseInt(quarter.substring(1), 10);
-                    const sortKey = year * 10 + quarterNum; // e.g., 20251 for Q1 2025
+                    const sortKey = year * QUARTER_SORT_MULTIPLIER + quarterNum;
                     quarterMap.set(sprint.kwartal, sortKey);
                 }
             });
