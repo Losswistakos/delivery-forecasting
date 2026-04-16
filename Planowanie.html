@@ -433,6 +433,123 @@
         .clear-filters-btn:hover {
             background-color: #7f8c8d;
         }
+
+        /* Dashboard Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .dashboard-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        .dashboard-card h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .metric-value {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        /* Capacity Planning Styles */
+        .capacity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .capacity-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .capacity-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .capacity-card h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .capacity-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .capacity-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .capacity-label {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .capacity-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3498db;
+            font-family: 'Courier New', monospace;
+        }
+
+        .capacity-recommendation {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 6px;
+            color: white;
+            text-align: center;
+        }
+
+        .capacity-recommendation strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .capacity-recommendation span {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
 <body>
@@ -460,8 +577,7 @@
                 </div>
                 <div class="filter-group">
                     <label for="filterQuarter">Kwartał</label>
-                    <select id="filterQuarter" onchange="applyFilters()">
-                        <option value="">Wszystkie kwartały</option>
+                    <select id="filterQuarter" onchange="applyFilters()" multiple size="4">
                         <option value="Q1">Q1</option>
                         <option value="Q2">Q2</option>
                         <option value="Q3">Q3</option>
@@ -492,6 +608,102 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div class="section">
+            <h2>Dashboard - Analiza Spalania</h2>
+            <div id="dashboard-content">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3>Średnie Spalanie</h3>
+                        <div class="metric-value" id="avg-burn">-</div>
+                        <div class="metric-label">Story Points</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Mediana Spalania</h3>
+                        <div class="metric-value" id="median-burn">-</div>
+                        <div class="metric-label">Story Points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capacity Planning Section -->
+        <div class="section">
+            <h2>Planowanie Pojemności - Zalecenia na Kolejny Sprint</h2>
+            <div id="capacity-content">
+                <div class="capacity-grid">
+                    <div class="capacity-card">
+                        <h3>Bieżący Kwartał</h3>
+                        <div class="capacity-details">
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie średniej (80%):</span>
+                                <span class="capacity-value" id="cap-q-avg">-</span>
+                            </div>
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie mediany (80%):</span>
+                                <span class="capacity-value" id="cap-q-median">-</span>
+                            </div>
+                            <div class="capacity-recommendation">
+                                <strong>Przedział docelowy:</strong>
+                                <span id="cap-q-range">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="capacity-card">
+                        <h3>Ostatnie 2 Kwartały</h3>
+                        <div class="capacity-details">
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie średniej (80%):</span>
+                                <span class="capacity-value" id="cap-2q-avg">-</span>
+                            </div>
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie mediany (80%):</span>
+                                <span class="capacity-value" id="cap-2q-median">-</span>
+                            </div>
+                            <div class="capacity-recommendation">
+                                <strong>Przedział docelowy:</strong>
+                                <span id="cap-2q-range">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="capacity-card">
+                        <h3>Ostatnie 4 Sprinty</h3>
+                        <div class="capacity-details">
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie średniej (80%):</span>
+                                <span class="capacity-value" id="cap-4s-avg">-</span>
+                            </div>
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie mediany (80%):</span>
+                                <span class="capacity-value" id="cap-4s-median">-</span>
+                            </div>
+                            <div class="capacity-recommendation">
+                                <strong>Przedział docelowy:</strong>
+                                <span id="cap-4s-range">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="capacity-card">
+                        <h3>Ostatnie 8 Sprintów</h3>
+                        <div class="capacity-details">
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie średniej (80%):</span>
+                                <span class="capacity-value" id="cap-8s-avg">-</span>
+                            </div>
+                            <div class="capacity-row">
+                                <span class="capacity-label">Na podstawie mediany (80%):</span>
+                                <span class="capacity-value" id="cap-8s-median">-</span>
+                            </div>
+                            <div class="capacity-recommendation">
+                                <strong>Przedział docelowy:</strong>
+                                <span id="cap-8s-range">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -590,7 +802,12 @@
 
     <script>
         let sprintsData = { sprints: [] };
-        let currentFilters = { year: '', quarter: '' };
+        let currentFilters = { year: '', quarters: [] };
+        
+        // Constants
+        const CAPACITY_UTILIZATION_RATE = 0.8; // We plan capacity expecting 80% completion rate
+        const MONTHS_PER_QUARTER = 3;
+        const QUARTER_SORT_MULTIPLIER = 10; // Creates sortable keys like 20241 for Q1 2024
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -626,6 +843,7 @@
                 }
                 populateYearFilter();
                 displaySprints();
+                updateDashboard();
             } catch (error) {
                 console.error('Error loading sprints data:', error);
                 document.getElementById('sprints-tbody').innerHTML = 
@@ -658,15 +876,17 @@
         // Apply filters
         function applyFilters() {
             currentFilters.year = document.getElementById('filterYear').value;
-            currentFilters.quarter = document.getElementById('filterQuarter').value;
+            const quarterSelect = document.getElementById('filterQuarter');
+            currentFilters.quarters = Array.from(quarterSelect.selectedOptions).map(option => option.value);
             displaySprints();
         }
 
         // Clear filters
         function clearFilters() {
             document.getElementById('filterYear').value = '';
-            document.getElementById('filterQuarter').value = '';
-            currentFilters = { year: '', quarter: '' };
+            const quarterSelect = document.getElementById('filterQuarter');
+            Array.from(quarterSelect.options).forEach(option => option.selected = false);
+            currentFilters = { year: '', quarters: [] };
             displaySprints();
         }
 
@@ -696,9 +916,9 @@
                     passFilter = passFilter && (yearMatch && yearMatch[0] === currentFilters.year);
                 }
                 
-                if (currentFilters.quarter) {
-                    // Check if quarter starts with the filter value
-                    passFilter = passFilter && sprint.kwartal.trim().startsWith(currentFilters.quarter);
+                if (currentFilters.quarters && currentFilters.quarters.length > 0) {
+                    // Check if quarter starts with any of the selected filter values
+                    passFilter = passFilter && currentFilters.quarters.some(q => sprint.kwartal.trim().startsWith(q));
                 }
                 
                 return passFilter;
@@ -752,6 +972,9 @@
                 `;
                 tbody.appendChild(row);
             });
+            
+            // Update dashboard after displaying sprints
+            updateDashboard();
         }
 
         // Format date to Polish format (DD.MM.YYYY)
@@ -1024,6 +1247,159 @@
                 banner.style.animation = 'fadeOut 0.3s ease-out';
                 setTimeout(() => banner.remove(), 300);
             }, 3000);
+        }
+
+        // Calculate average
+        function calculateAverage(values) {
+            if (values.length === 0) return 0;
+            const sum = values.reduce((acc, val) => acc + val, 0);
+            return sum / values.length;
+        }
+
+        // Calculate median
+        function calculateMedian(values) {
+            if (values.length === 0) return 0;
+            const sorted = [...values].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            if (sorted.length % 2 === 0) {
+                return (sorted[mid - 1] + sorted[mid]) / 2;
+            }
+            return sorted[mid];
+        }
+
+        // Get sprints for capacity calculation (exclude "nieUwzgledniaj" sprints)
+        function getValidSprints() {
+            return sprintsData.sprints
+                .filter(sprint => !sprint.nieUwzgledniaj)
+                .sort((a, b) => new Date(a.dataRozpoczecia) - new Date(b.dataRozpoczecia));
+        }
+
+        // Get current quarter
+        function getCurrentQuarter() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const quarter = Math.ceil(month / MONTHS_PER_QUARTER);
+            return `Q${quarter} ${year}`;
+        }
+
+        // Get sprints from current quarter
+        function getCurrentQuarterSprints() {
+            const currentQ = getCurrentQuarter();
+            return getValidSprints().filter(sprint => sprint.kwartal === currentQ);
+        }
+
+        // Get sprints from last N quarters
+        function getLastNQuartersSprints(n) {
+            const validSprints = getValidSprints();
+            if (validSprints.length === 0) return [];
+            
+            // Get unique quarters and sort them chronologically
+            const quarterMap = new Map();
+            validSprints.forEach(sprint => {
+                const match = sprint.kwartal.match(/(Q[1-4])\s+(\d{4})/);
+                if (match) {
+                    const quarter = match[1];
+                    const year = parseInt(match[2], 10);
+                    const quarterNum = parseInt(quarter.substring(1), 10);
+                    const sortKey = year * QUARTER_SORT_MULTIPLIER + quarterNum;
+                    quarterMap.set(sprint.kwartal, sortKey);
+                }
+            });
+            
+            // Sort quarters chronologically
+            const sortedQuarters = [...new Set(validSprints.map(s => s.kwartal))]
+                .sort((a, b) => (quarterMap.get(a) || 0) - (quarterMap.get(b) || 0));
+            
+            const lastQuarters = sortedQuarters.slice(-n);
+            
+            return validSprints.filter(sprint => lastQuarters.includes(sprint.kwartal));
+        }
+
+        // Get last N sprints
+        function getLastNSprints(n) {
+            const validSprints = getValidSprints();
+            return validSprints.slice(-n);
+        }
+
+        // Update dashboard with statistics
+        function updateDashboard() {
+            const validSprints = getValidSprints();
+            
+            if (validSprints.length === 0) {
+                document.getElementById('avg-burn').textContent = '-';
+                document.getElementById('median-burn').textContent = '-';
+                resetCapacityPlanning();
+                return;
+            }
+
+            // Get burn values
+            const burnValues = validSprints.map(s => s.liczbaUkonczonychSP);
+            
+            // Calculate overall statistics
+            const avgBurn = calculateAverage(burnValues);
+            const medianBurn = calculateMedian(burnValues);
+            
+            // Update dashboard
+            document.getElementById('avg-burn').textContent = avgBurn.toFixed(1);
+            document.getElementById('median-burn').textContent = medianBurn.toFixed(1);
+            
+            // Update capacity planning
+            updateCapacityPlanning();
+        }
+
+        // Update capacity planning calculations
+        function updateCapacityPlanning() {
+            // Current quarter
+            updateCapacityForScope('q', getCurrentQuarterSprints());
+            
+            // Last 2 quarters
+            updateCapacityForScope('2q', getLastNQuartersSprints(2));
+            
+            // Last 4 sprints
+            updateCapacityForScope('4s', getLastNSprints(4));
+            
+            // Last 8 sprints
+            updateCapacityForScope('8s', getLastNSprints(8));
+        }
+
+        // Update capacity for a specific scope
+        function updateCapacityForScope(scopeId, sprints) {
+            if (sprints.length === 0) {
+                document.getElementById(`cap-${scopeId}-avg`).textContent = '-';
+                document.getElementById(`cap-${scopeId}-median`).textContent = '-';
+                document.getElementById(`cap-${scopeId}-range`).textContent = 'Brak danych';
+                return;
+            }
+            
+            const burnValues = sprints.map(s => s.liczbaUkonczonychSP);
+            const avg = calculateAverage(burnValues);
+            const median = calculateMedian(burnValues);
+            
+            // Calculate planned capacity based on historical burn rates
+            // Formula: If we historically complete 'avg' SP at 80% utilization,
+            // we should plan for (avg / 0.8) SP to achieve target utilization
+            const capacityFromAvg = avg / CAPACITY_UTILIZATION_RATE;
+            const capacityFromMedian = median / CAPACITY_UTILIZATION_RATE;
+            
+            // Update display
+            document.getElementById(`cap-${scopeId}-avg`).textContent = capacityFromAvg.toFixed(1) + ' SP';
+            document.getElementById(`cap-${scopeId}-median`).textContent = capacityFromMedian.toFixed(1) + ' SP';
+            
+            // Calculate range
+            const min = Math.min(capacityFromAvg, capacityFromMedian);
+            const max = Math.max(capacityFromAvg, capacityFromMedian);
+            document.getElementById(`cap-${scopeId}-range`).textContent = 
+                `${min.toFixed(1)} - ${max.toFixed(1)} SP`;
+        }
+
+        // Reset capacity planning display
+        function resetCapacityPlanning() {
+            ['q', '2q', '4s', '8s'].forEach(scopeId => {
+                document.getElementById(`cap-${scopeId}-avg`).textContent = '-';
+                document.getElementById(`cap-${scopeId}-median`).textContent = '-';
+                document.getElementById(`cap-${scopeId}-range`).textContent = 'Brak danych';
+            });
         }
     </script>
 </body>

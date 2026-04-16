@@ -2,6 +2,56 @@
   "sprints": [
     {
       "numerSprintu": 1,
+      "dataRozpoczecia": "2024-10-07",
+      "dataZakonczenia": "2024-10-21",
+      "kwartal": "Q4 2024",
+      "liczbaPlanowanychSP": 48,
+      "liczbaUkonczonychSP": 42,
+      "celSpelniony": false,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 2,
+      "dataRozpoczecia": "2024-10-21",
+      "dataZakonczenia": "2024-11-04",
+      "kwartal": "Q4 2024",
+      "liczbaPlanowanychSP": 50,
+      "liczbaUkonczonychSP": 47,
+      "celSpelniony": true,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 3,
+      "dataRozpoczecia": "2024-11-04",
+      "dataZakonczenia": "2024-11-18",
+      "kwartal": "Q4 2024",
+      "liczbaPlanowanychSP": 52,
+      "liczbaUkonczonychSP": 50,
+      "celSpelniony": true,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 4,
+      "dataRozpoczecia": "2024-11-18",
+      "dataZakonczenia": "2024-12-02",
+      "kwartal": "Q4 2024",
+      "liczbaPlanowanychSP": 45,
+      "liczbaUkonczonychSP": 43,
+      "celSpelniony": true,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 5,
+      "dataRozpoczecia": "2024-12-02",
+      "dataZakonczenia": "2024-12-16",
+      "kwartal": "Q4 2024",
+      "liczbaPlanowanychSP": 40,
+      "liczbaUkonczonychSP": 38,
+      "celSpelniony": true,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 6,
       "dataRozpoczecia": "2025-01-06",
       "dataZakonczenia": "2025-01-20",
       "kwartal": "Q1 2025",
@@ -11,7 +61,7 @@
       "nieUwzgledniaj": false
     },
     {
-      "numerSprintu": 2,
+      "numerSprintu": 7,
       "dataRozpoczecia": "2025-01-20",
       "dataZakonczenia": "2025-02-03",
       "kwartal": "Q1 2025",
@@ -21,13 +71,33 @@
       "nieUwzgledniaj": false
     },
     {
-      "numerSprintu": 3,
+      "numerSprintu": 8,
       "dataRozpoczecia": "2025-02-03",
       "dataZakonczenia": "2025-02-17",
       "kwartal": "Q1 2025",
       "liczbaPlanowanychSP": 48,
       "liczbaUkonczonychSP": 40,
       "celSpelniony": false,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 9,
+      "dataRozpoczecia": "2025-02-17",
+      "dataZakonczenia": "2025-03-03",
+      "kwartal": "Q1 2025",
+      "liczbaPlanowanychSP": 53,
+      "liczbaUkonczonychSP": 48,
+      "celSpelniony": true,
+      "nieUwzgledniaj": false
+    },
+    {
+      "numerSprintu": 10,
+      "dataRozpoczecia": "2025-03-03",
+      "dataZakonczenia": "2025-03-17",
+      "kwartal": "Q1 2025",
+      "liczbaPlanowanychSP": 51,
+      "liczbaUkonczonychSP": 49,
+      "celSpelniony": true,
       "nieUwzgledniaj": false
     }
   ]
