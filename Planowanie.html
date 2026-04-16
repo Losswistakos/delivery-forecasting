@@ -126,6 +126,10 @@
         .add-sprint-btn:hover {
             background-color: #229954;
         }
+        
+        .add-sprint-btn .icon {
+            font-size: 20px;
+        }
 
         /* Modal Styles */
         .modal {
@@ -689,7 +693,7 @@
         <div class="section">
             <h2>Dane dot. sprintów</h2>
             <button class="add-sprint-btn" onclick="openModal()">
-                <span style="font-size: 20px;">+</span>
+                <span class="icon">+</span>
                 <span>Dodaj sprint</span>
             </button>
             
@@ -914,6 +918,7 @@
         // Chart rendering constants
         const DEFAULT_CANVAS_WIDTH = 800;
         const DEFAULT_CANVAS_HEIGHT = 400;
+        const DEFAULT_DEVICE_PIXEL_RATIO = 1;
         const CHART_PADDING = 60;
         const GRID_LINE_COUNT = 5;
         const BAR_WIDTH_RATIO = 0.6;
@@ -1713,7 +1718,7 @@
             const ctx = canvas.getContext('2d');
             
             // Set canvas size with DPI scaling for crisp rendering
-            const dpr = window.devicePixelRatio || 1;
+            const dpr = window.devicePixelRatio || DEFAULT_DEVICE_PIXEL_RATIO;
             // Use offsetWidth with fallback to clientWidth or default
             const displayWidth = canvas.offsetWidth || canvas.clientWidth || DEFAULT_CANVAS_WIDTH;
             const displayHeight = canvas.offsetHeight || canvas.clientHeight || DEFAULT_CANVAS_HEIGHT;
