@@ -434,7 +434,120 @@
             background-color: #7f8c8d;
         }
 
+        /* Hierarchical filter styles */
+        .hierarchical-filter {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .year-item {
+            margin-bottom: 5px;
+        }
+
+        .year-header {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .year-header:hover {
+            background-color: #e9ecef;
+        }
+
+        .expand-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+        .year-checkbox {
+            margin-right: 8px;
+        }
+
+        .year-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .quarters-list {
+            display: none;
+            padding-left: 32px;
+            margin-top: 5px;
+        }
+
+        .quarters-list.expanded {
+            display: block;
+        }
+
+        .quarter-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            margin-bottom: 3px;
+        }
+
+        .quarter-checkbox {
+            margin-right: 8px;
+        }
+
+        .quarter-label {
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            user-select: none;
+        }
+
         /* Dashboard Styles */
+        .dashboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #7f8c8d;
+            transition: all 0.2s;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .dashboard-tab:hover {
+            color: #2c3e50;
+            background-color: #f8f9fa;
+        }
+
+        .dashboard-tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -473,6 +586,19 @@
         .metric-label {
             font-size: 14px;
             opacity: 0.85;
+        }
+
+        /* Chart Styles */
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 400px;
         }
 
         /* Capacity Planning Styles */
@@ -570,19 +696,10 @@
             <!-- Filters -->
             <div class="filters-section">
                 <div class="filter-group">
-                    <label for="filterYear">Rok</label>
-                    <select id="filterYear" onchange="applyFilters()">
-                        <option value="">Wszystkie lata</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filterQuarter">Kwartał</label>
-                    <select id="filterQuarter" onchange="applyFilters()" multiple size="4">
-                        <option value="Q1">Q1</option>
-                        <option value="Q2">Q2</option>
-                        <option value="Q3">Q3</option>
-                        <option value="Q4">Q4</option>
-                    </select>
+                    <label>Filtruj po roku i kwartale</label>
+                    <div id="hierarchicalFilter" class="hierarchical-filter">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
                 </div>
                 <button class="clear-filters-btn" onclick="clearFilters()">Wyczyść filtry</button>
             </div>
@@ -614,6 +731,16 @@
         <!-- Dashboard Section -->
         <div class="section">
             <h2>Dashboard - Analiza Spalania</h2>
+            
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs">
+                <button class="dashboard-tab" data-scope="total" onclick="switchDashboardTab('total')">Całkowite</button>
+                <button class="dashboard-tab" data-scope="current-quarter" onclick="switchDashboardTab('current-quarter')">Bieżący kwartał</button>
+                <button class="dashboard-tab" data-scope="last-2-quarters" onclick="switchDashboardTab('last-2-quarters')">Ostatnie 2 kwartały</button>
+                <button class="dashboard-tab" data-scope="last-4-sprints" onclick="switchDashboardTab('last-4-sprints')">Ostatnie 4 sprinty</button>
+                <button class="dashboard-tab active" data-scope="last-8-sprints" onclick="switchDashboardTab('last-8-sprints')">Ostatnie 8 sprintów</button>
+            </div>
+            
             <div id="dashboard-content">
                 <div class="dashboard-grid">
                     <div class="dashboard-card">
@@ -627,6 +754,12 @@
                         <div class="metric-label">Story Points</div>
                     </div>
                 </div>
+                
+                <!-- Burndown Chart -->
+                <div class="chart-container">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">Wizualizacja Spalania w Sprintach</h3>
+                    <canvas id="burndownChart" class="chart-canvas"></canvas>
+                </div>
             </div>
         </div>
 
@@ -635,40 +768,6 @@
             <h2>Planowanie Pojemności - Zalecenia na Kolejny Sprint</h2>
             <div id="capacity-content">
                 <div class="capacity-grid">
-                    <div class="capacity-card">
-                        <h3>Bieżący Kwartał</h3>
-                        <div class="capacity-details">
-                            <div class="capacity-row">
-                                <span class="capacity-label">Na podstawie średniej (80%):</span>
-                                <span class="capacity-value" id="cap-q-avg">-</span>
-                            </div>
-                            <div class="capacity-row">
-                                <span class="capacity-label">Na podstawie mediany (80%):</span>
-                                <span class="capacity-value" id="cap-q-median">-</span>
-                            </div>
-                            <div class="capacity-recommendation">
-                                <strong>Przedział docelowy:</strong>
-                                <span id="cap-q-range">-</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="capacity-card">
-                        <h3>Ostatnie 2 Kwartały</h3>
-                        <div class="capacity-details">
-                            <div class="capacity-row">
-                                <span class="capacity-label">Na podstawie średniej (80%):</span>
-                                <span class="capacity-value" id="cap-2q-avg">-</span>
-                            </div>
-                            <div class="capacity-row">
-                                <span class="capacity-label">Na podstawie mediany (80%):</span>
-                                <span class="capacity-value" id="cap-2q-median">-</span>
-                            </div>
-                            <div class="capacity-recommendation">
-                                <strong>Przedział docelowy:</strong>
-                                <span id="cap-2q-range">-</span>
-                            </div>
-                        </div>
-                    </div>
                     <div class="capacity-card">
                         <h3>Ostatnie 4 Sprinty</h3>
                         <div class="capacity-details">
@@ -802,7 +901,9 @@
 
     <script>
         let sprintsData = { sprints: [] };
-        let currentFilters = { year: '', quarters: [] };
+        let currentFilters = { selectedQuarters: [] }; // Will store "Q1 2025", "Q2 2025", etc.
+        let currentDashboardScope = 'last-8-sprints';
+        let burndownChart = null;
         
         // Constants
         const CAPACITY_UTILIZATION_RATE = 0.8; // We plan capacity expecting 80% completion rate
@@ -841,9 +942,10 @@
                     const response = await fetch('Planowanie_dane.json');
                     sprintsData = await response.json();
                 }
-                populateYearFilter();
+                populateHierarchicalFilter();
                 displaySprints();
                 updateDashboard();
+                initializeChart();
             } catch (error) {
                 console.error('Error loading sprints data:', error);
                 document.getElementById('sprints-tbody').innerHTML = 
@@ -851,42 +953,180 @@
             }
         }
 
-        // Populate year filter with available years
-        function populateYearFilter() {
-            const years = new Set();
+        // Populate hierarchical year-quarter filter
+        function populateHierarchicalFilter() {
+            const yearQuarterMap = new Map();
+            
+            // Group quarters by year
             sprintsData.sprints.forEach(sprint => {
-                // Extract year from kwartal field (e.g., "Q1 2025")
-                const match = sprint.kwartal.match(/\d{4}/);
+                const match = sprint.kwartal.match(/(Q[1-4])\s+(\d{4})/);
                 if (match) {
-                    years.add(match[0]);
+                    const quarter = match[1];
+                    const year = match[2];
+                    if (!yearQuarterMap.has(year)) {
+                        yearQuarterMap.set(year, new Set());
+                    }
+                    yearQuarterMap.get(year).add(quarter);
                 }
             });
             
-            const yearFilter = document.getElementById('filterYear');
-            yearFilter.innerHTML = '<option value="">Wszystkie lata</option>';
+            const filterContainer = document.getElementById('hierarchicalFilter');
+            filterContainer.innerHTML = '';
             
-            Array.from(years).sort().forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearFilter.appendChild(option);
+            // Sort years in descending order
+            const sortedYears = Array.from(yearQuarterMap.keys()).sort((a, b) => b.localeCompare(a));
+            
+            sortedYears.forEach(year => {
+                const yearItem = document.createElement('div');
+                yearItem.className = 'year-item';
+                
+                // Year header
+                const yearHeader = document.createElement('div');
+                yearHeader.className = 'year-header';
+                
+                const expandIcon = document.createElement('span');
+                expandIcon.className = 'expand-icon';
+                expandIcon.textContent = '▶';
+                
+                const yearCheckbox = document.createElement('input');
+                yearCheckbox.type = 'checkbox';
+                yearCheckbox.className = 'year-checkbox';
+                yearCheckbox.id = `year-${year}`;
+                yearCheckbox.addEventListener('change', (e) => toggleYearSelection(year, e.target.checked));
+                
+                const yearLabel = document.createElement('span');
+                yearLabel.className = 'year-label';
+                yearLabel.textContent = year;
+                
+                yearHeader.appendChild(expandIcon);
+                yearHeader.appendChild(yearCheckbox);
+                yearHeader.appendChild(yearLabel);
+                
+                // Quarters list
+                const quartersList = document.createElement('div');
+                quartersList.className = 'quarters-list';
+                
+                const quarters = Array.from(yearQuarterMap.get(year)).sort();
+                quarters.forEach(quarter => {
+                    const quarterItem = document.createElement('div');
+                    quarterItem.className = 'quarter-item';
+                    
+                    const quarterCheckbox = document.createElement('input');
+                    quarterCheckbox.type = 'checkbox';
+                    quarterCheckbox.className = 'quarter-checkbox';
+                    quarterCheckbox.id = `quarter-${quarter}-${year}`;
+                    quarterCheckbox.value = `${quarter} ${year}`;
+                    quarterCheckbox.addEventListener('change', applyFilters);
+                    
+                    const quarterLabel = document.createElement('span');
+                    quarterLabel.className = 'quarter-label';
+                    quarterLabel.textContent = quarter;
+                    quarterLabel.onclick = () => {
+                        quarterCheckbox.checked = !quarterCheckbox.checked;
+                        applyFilters();
+                    };
+                    
+                    quarterItem.appendChild(quarterCheckbox);
+                    quarterItem.appendChild(quarterLabel);
+                    quartersList.appendChild(quarterItem);
+                });
+                
+                yearItem.appendChild(yearHeader);
+                yearItem.appendChild(quartersList);
+                filterContainer.appendChild(yearItem);
+                
+                // Toggle expand/collapse on header click
+                yearHeader.addEventListener('click', (e) => {
+                    if (e.target !== yearCheckbox) {
+                        quartersList.classList.toggle('expanded');
+                        expandIcon.classList.toggle('expanded');
+                    }
+                });
             });
+            
+            // Set default selection to current and previous quarter
+            setDefaultQuarterSelection();
         }
-
+        
+        // Set default selection to current and previous quarter
+        function setDefaultQuarterSelection() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            const currentQuarterNum = Math.ceil(currentMonth / MONTHS_PER_QUARTER);
+            
+            const currentQuarter = `Q${currentQuarterNum} ${currentYear}`;
+            
+            // Calculate previous quarter
+            let prevQuarterNum = currentQuarterNum - 1;
+            let prevYear = currentYear;
+            if (prevQuarterNum < 1) {
+                prevQuarterNum = 4;
+                prevYear = currentYear - 1;
+            }
+            const previousQuarter = `Q${prevQuarterNum} ${prevYear}`;
+            
+            // Check the checkboxes for current and previous quarter
+            [currentQuarter, previousQuarter].forEach(quarter => {
+                const checkbox = document.querySelector(`input[value="${quarter}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    // Expand parent year
+                    const yearMatch = quarter.match(/\d{4}/);
+                    if (yearMatch) {
+                        const year = yearMatch[0];
+                        const yearItem = checkbox.closest('.year-item');
+                        if (yearItem) {
+                            yearItem.querySelector('.quarters-list').classList.add('expanded');
+                            yearItem.querySelector('.expand-icon').classList.add('expanded');
+                        }
+                    }
+                }
+            });
+            
+            applyFilters();
+        }
+        
+        // Toggle year selection
+        function toggleYearSelection(year, checked) {
+            const quarterCheckboxes = document.querySelectorAll(`.quarter-checkbox[id*="-${year}"]`);
+            quarterCheckboxes.forEach(checkbox => {
+                checkbox.checked = checked;
+            });
+            applyFilters();
+        }
+        
         // Apply filters
         function applyFilters() {
-            currentFilters.year = document.getElementById('filterYear').value;
-            const quarterSelect = document.getElementById('filterQuarter');
-            currentFilters.quarters = Array.from(quarterSelect.selectedOptions).map(option => option.value);
+            const quarterCheckboxes = document.querySelectorAll('.quarter-checkbox:checked');
+            currentFilters.selectedQuarters = Array.from(quarterCheckboxes).map(cb => cb.value);
             displaySprints();
+            
+            // Update year checkboxes state
+            document.querySelectorAll('.year-checkbox').forEach(yearCheckbox => {
+                const year = yearCheckbox.id.replace('year-', '');
+                const quarterCheckboxes = document.querySelectorAll(`.quarter-checkbox[id*="-${year}"]`);
+                const checkedQuarters = Array.from(quarterCheckboxes).filter(cb => cb.checked);
+                
+                if (checkedQuarters.length === 0) {
+                    yearCheckbox.checked = false;
+                    yearCheckbox.indeterminate = false;
+                } else if (checkedQuarters.length === quarterCheckboxes.length) {
+                    yearCheckbox.checked = true;
+                    yearCheckbox.indeterminate = false;
+                } else {
+                    yearCheckbox.checked = false;
+                    yearCheckbox.indeterminate = true;
+                }
+            });
         }
-
+        
         // Clear filters
         function clearFilters() {
-            document.getElementById('filterYear').value = '';
-            const quarterSelect = document.getElementById('filterQuarter');
-            Array.from(quarterSelect.options).forEach(option => option.selected = false);
-            currentFilters = { year: '', quarters: [] };
+            document.querySelectorAll('.year-checkbox, .quarter-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            currentFilters.selectedQuarters = [];
             displaySprints();
         }
 
@@ -908,20 +1148,13 @@
 
             // Apply filters
             const filteredSprints = sortedSprints.filter(sprint => {
-                let passFilter = true;
-                
-                if (currentFilters.year) {
-                    // Extract year from kwartal field (e.g., "Q1 2025")
-                    const yearMatch = sprint.kwartal.match(/\d{4}/);
-                    passFilter = passFilter && (yearMatch && yearMatch[0] === currentFilters.year);
+                // If no quarters selected, show all
+                if (currentFilters.selectedQuarters.length === 0) {
+                    return true;
                 }
                 
-                if (currentFilters.quarters && currentFilters.quarters.length > 0) {
-                    // Check if quarter starts with any of the selected filter values
-                    passFilter = passFilter && currentFilters.quarters.some(q => sprint.kwartal.trim().startsWith(q));
-                }
-                
-                return passFilter;
+                // Check if sprint's quarter is in selected quarters
+                return currentFilters.selectedQuarters.includes(sprint.kwartal.trim());
             });
 
             if (filteredSprints.length === 0) {
@@ -1218,7 +1451,7 @@
             localStorage.setItem('sprintsData', JSON.stringify(sprintsData));
             
             // Refresh display and filters
-            populateYearFilter();
+            populateHierarchicalFilter();
             displaySprints();
             
             // Close modal
@@ -1322,21 +1555,36 @@
             return validSprints.slice(-n);
         }
 
+        // Switch dashboard tab
+        function switchDashboardTab(scope) {
+            currentDashboardScope = scope;
+            
+            // Update active tab
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.dashboard-tab[data-scope="${scope}"]`).classList.add('active');
+            
+            // Update dashboard
+            updateDashboard();
+            updateChart();
+        }
+
         // Update dashboard with statistics
         function updateDashboard() {
-            const validSprints = getValidSprints();
+            const sprints = getSprintsForScope(currentDashboardScope);
             
-            if (validSprints.length === 0) {
+            if (sprints.length === 0) {
                 document.getElementById('avg-burn').textContent = '-';
                 document.getElementById('median-burn').textContent = '-';
-                resetCapacityPlanning();
+                updateCapacityPlanning();
                 return;
             }
 
             // Get burn values
-            const burnValues = validSprints.map(s => s.liczbaUkonczonychSP);
+            const burnValues = sprints.map(s => s.liczbaUkonczonychSP);
             
-            // Calculate overall statistics
+            // Calculate statistics
             const avgBurn = calculateAverage(burnValues);
             const medianBurn = calculateMedian(burnValues);
             
@@ -1347,15 +1595,27 @@
             // Update capacity planning
             updateCapacityPlanning();
         }
+        
+        // Get sprints for the selected scope
+        function getSprintsForScope(scope) {
+            switch(scope) {
+                case 'total':
+                    return getValidSprints();
+                case 'current-quarter':
+                    return getCurrentQuarterSprints();
+                case 'last-2-quarters':
+                    return getLastNQuartersSprints(2);
+                case 'last-4-sprints':
+                    return getLastNSprints(4);
+                case 'last-8-sprints':
+                    return getLastNSprints(8);
+                default:
+                    return getLastNSprints(8);
+            }
+        }
 
         // Update capacity planning calculations
         function updateCapacityPlanning() {
-            // Current quarter
-            updateCapacityForScope('q', getCurrentQuarterSprints());
-            
-            // Last 2 quarters
-            updateCapacityForScope('2q', getLastNQuartersSprints(2));
-            
             // Last 4 sprints
             updateCapacityForScope('4s', getLastNSprints(4));
             
@@ -1395,11 +1655,228 @@
 
         // Reset capacity planning display
         function resetCapacityPlanning() {
-            ['q', '2q', '4s', '8s'].forEach(scopeId => {
+            ['4s', '8s'].forEach(scopeId => {
                 document.getElementById(`cap-${scopeId}-avg`).textContent = '-';
                 document.getElementById(`cap-${scopeId}-median`).textContent = '-';
                 document.getElementById(`cap-${scopeId}-range`).textContent = 'Brak danych';
             });
+        }
+        
+        // Initialize chart
+        function initializeChart() {
+            const canvas = document.getElementById('burndownChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set up Chart.js if not already loaded
+            if (typeof Chart === 'undefined') {
+                // We'll use a simple canvas implementation
+                updateChart();
+            } else {
+                updateChart();
+            }
+        }
+        
+        // Update chart with data
+        function updateChart() {
+            const sprints = getSprintsForScope(currentDashboardScope);
+            
+            if (sprints.length === 0) {
+                // Clear chart
+                const canvas = document.getElementById('burndownChart');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#7f8c8d';
+                ctx.textAlign = 'center';
+                ctx.fillText('Brak danych do wyświetlenia', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            drawChart(sprints);
+        }
+        
+        // Draw the chart on canvas
+        function drawChart(sprints) {
+            const canvas = document.getElementById('burndownChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Get data
+            const burnValues = sprints.map(s => s.liczbaUkonczonychSP);
+            const labels = sprints.map(s => s.numerSprintu);
+            
+            // Calculate statistics
+            const avg = calculateAverage(burnValues);
+            const median = calculateMedian(burnValues);
+            const trend = calculateTrendLine(burnValues);
+            
+            // Find min and max for scaling
+            const maxValue = Math.max(...burnValues, avg, median, ...trend) * 1.1;
+            const minValue = 0;
+            
+            // Draw axes
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+            
+            // Helper function to get Y position
+            const getY = (value) => {
+                return padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
+            };
+            
+            // Helper function to get X position
+            const getX = (index) => {
+                return padding + (index / (burnValues.length - 1)) * chartWidth;
+            };
+            
+            // Draw horizontal grid lines and labels
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#7f8c8d';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            
+            for (let i = 0; i <= 5; i++) {
+                const value = minValue + (maxValue - minValue) * (i / 5);
+                const y = getY(value);
+                
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + chartWidth, y);
+                ctx.stroke();
+                
+                ctx.fillText(value.toFixed(0), padding - 10, y + 4);
+            }
+            
+            // Draw bars
+            const barWidth = chartWidth / burnValues.length * 0.6;
+            ctx.fillStyle = '#3498db';
+            
+            burnValues.forEach((value, index) => {
+                const x = getX(index);
+                const y = getY(value);
+                const height = getY(0) - y;
+                
+                ctx.fillRect(x - barWidth / 2, y, barWidth, height);
+            });
+            
+            // Draw average line
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, getY(avg));
+            ctx.lineTo(padding + chartWidth, getY(avg));
+            ctx.stroke();
+            
+            // Draw median line
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, getY(median));
+            ctx.lineTo(padding + chartWidth, getY(median));
+            ctx.stroke();
+            
+            // Draw trend line
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            trend.forEach((value, index) => {
+                const x = getX(index);
+                const y = getY(value);
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Draw X-axis labels
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'center';
+            ctx.setLineDash([]);
+            
+            labels.forEach((label, index) => {
+                const x = getX(index);
+                ctx.save();
+                ctx.translate(x, padding + chartHeight + 15);
+                ctx.rotate(-Math.PI / 4);
+                ctx.fillText(label, 0, 0);
+                ctx.restore();
+            });
+            
+            // Draw legend
+            const legendY = 30;
+            const legendX = padding + chartWidth - 250;
+            
+            // Average
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(legendX, legendY);
+            ctx.lineTo(legendX + 30, legendY);
+            ctx.stroke();
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Średnia (${avg.toFixed(1)})`, legendX + 35, legendY + 4);
+            
+            // Median
+            ctx.strokeStyle = '#27ae60';
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(legendX, legendY + 20);
+            ctx.lineTo(legendX + 30, legendY + 20);
+            ctx.stroke();
+            ctx.fillText(`Mediana (${median.toFixed(1)})`, legendX + 35, legendY + 24);
+            
+            // Trend
+            ctx.strokeStyle = '#f39c12';
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(legendX, legendY + 40);
+            ctx.lineTo(legendX + 30, legendY + 40);
+            ctx.stroke();
+            ctx.fillText('Trend', legendX + 35, legendY + 44);
+        }
+        
+        // Calculate trend line using linear regression
+        function calculateTrendLine(values) {
+            const n = values.length;
+            if (n === 0) return [];
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            values.forEach((y, x) => {
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumX2 += x * x;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return values.map((_, x) => slope * x + intercept);
         }
     </script>
 </body>
