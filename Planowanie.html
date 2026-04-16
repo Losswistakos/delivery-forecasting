@@ -691,11 +691,14 @@
                 let passFilter = true;
                 
                 if (currentFilters.year) {
-                    passFilter = passFilter && sprint.kwartal.includes(currentFilters.year);
+                    // Extract year from kwartal field (e.g., "Q1 2025")
+                    const yearMatch = sprint.kwartal.match(/\d{4}/);
+                    passFilter = passFilter && (yearMatch && yearMatch[0] === currentFilters.year);
                 }
                 
                 if (currentFilters.quarter) {
-                    passFilter = passFilter && sprint.kwartal.startsWith(currentFilters.quarter);
+                    // Check if quarter starts with the filter value
+                    passFilter = passFilter && sprint.kwartal.trim().startsWith(currentFilters.quarter);
                 }
                 
                 return passFilter;
@@ -707,9 +710,12 @@
             }
 
             tbody.innerHTML = '';
-            filteredSprints.forEach((sprint, index) => {
-                // Find the original index in sprintsData.sprints
-                const originalIndex = sprintsData.sprints.indexOf(sprint);
+            filteredSprints.forEach(sprint => {
+                // Find the original index in sprintsData.sprints for edit/delete actions
+                const originalIndex = sprintsData.sprints.findIndex(s => 
+                    s.numerSprintu === sprint.numerSprintu && 
+                    s.dataRozpoczecia === sprint.dataRozpoczecia
+                );
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -824,7 +830,10 @@
             if (kwartalMatch) {
                 document.getElementById('rok').value = kwartalMatch[2];
                 const quarterValue = kwartalMatch[1];
-                document.querySelector(`input[name="kwartal"][value="${quarterValue}"]`).checked = true;
+                const quarterRadio = document.querySelector(`input[name="kwartal"][value="${quarterValue}"]`);
+                if (quarterRadio) {
+                    quarterRadio.checked = true;
+                }
             }
             
             document.getElementById('liczbaPlanowanychSP').value = sprint.liczbaPlanowanychSP || '';
