@@ -909,7 +909,16 @@
         const CAPACITY_UTILIZATION_RATE = 0.8; // We plan capacity expecting 80% completion rate
         const MONTHS_PER_QUARTER = 3;
         const QUARTER_SORT_MULTIPLIER = 10; // Creates sortable keys like 20241 for Q1 2024
-        const LABEL_ROTATION_ANGLE = -Math.PI / 4; // 45 degrees for chart labels
+        const LABEL_ROTATION_ANGLE = -Math.PI / 4; // -45 degrees for chart labels
+        
+        // Chart rendering constants
+        const DEFAULT_CANVAS_WIDTH = 800;
+        const DEFAULT_CANVAS_HEIGHT = 400;
+        const CHART_PADDING = 60;
+        const GRID_LINE_COUNT = 5;
+        const BAR_WIDTH_RATIO = 0.6;
+        const MIN_BAR_WIDTH = 3;
+        const LEGEND_OFFSET_FROM_RIGHT = 250;
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1706,8 +1715,8 @@
             // Set canvas size with DPI scaling for crisp rendering
             const dpr = window.devicePixelRatio || 1;
             // Use offsetWidth with fallback to clientWidth or default
-            const displayWidth = canvas.offsetWidth || canvas.clientWidth || 800;
-            const displayHeight = canvas.offsetHeight || canvas.clientHeight || 400;
+            const displayWidth = canvas.offsetWidth || canvas.clientWidth || DEFAULT_CANVAS_WIDTH;
+            const displayHeight = canvas.offsetHeight || canvas.clientHeight || DEFAULT_CANVAS_HEIGHT;
             
             // Ensure non-zero dimensions
             if (displayWidth === 0 || displayHeight === 0) {
@@ -1722,9 +1731,8 @@
             
             ctx.scale(dpr, dpr);
             
-            const padding = 60;
-            const chartWidth = displayWidth - 2 * padding;
-            const chartHeight = displayHeight - 2 * padding;
+            const chartWidth = displayWidth - 2 * CHART_PADDING;
+            const chartHeight = displayHeight - 2 * CHART_PADDING;
             
             // Clear canvas
             ctx.clearRect(0, 0, displayWidth, displayHeight);
@@ -1752,24 +1760,24 @@
             ctx.strokeStyle = '#2c3e50';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, padding + chartHeight);
-            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.moveTo(CHART_PADDING, CHART_PADDING);
+            ctx.lineTo(CHART_PADDING, CHART_PADDING + chartHeight);
+            ctx.lineTo(CHART_PADDING + chartWidth, CHART_PADDING + chartHeight);
             ctx.stroke();
             
             // Helper function to get Y position
             const getY = (value) => {
-                if (maxValue === 0) return padding + chartHeight;
-                return padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
+                if (maxValue === 0) return CHART_PADDING + chartHeight;
+                return CHART_PADDING + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
             };
             
             // Helper function to get X position
             const getX = (index) => {
                 // Handle single element case
                 if (burnValues.length === 1) {
-                    return padding + chartWidth / 2;
+                    return CHART_PADDING + chartWidth / 2;
                 }
-                return padding + (index / (burnValues.length - 1)) * chartWidth;
+                return CHART_PADDING + (index / (burnValues.length - 1)) * chartWidth;
             };
             
             // Draw horizontal grid lines and labels
@@ -1779,21 +1787,21 @@
             ctx.font = '12px Arial';
             ctx.textAlign = 'right';
             
-            for (let i = 0; i <= 5; i++) {
-                const value = minValue + (maxValue - minValue) * (i / 5);
+            for (let i = 0; i <= GRID_LINE_COUNT; i++) {
+                const value = minValue + (maxValue - minValue) * (i / GRID_LINE_COUNT);
                 const y = getY(value);
                 
                 ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(padding + chartWidth, y);
+                ctx.moveTo(CHART_PADDING, y);
+                ctx.lineTo(CHART_PADDING + chartWidth, y);
                 ctx.stroke();
                 
-                ctx.fillText(value.toFixed(0), padding - 10, y + 4);
+                ctx.fillText(value.toFixed(0), CHART_PADDING - 10, y + 4);
             }
             
             // Draw bars
             // Calculate bar width once (with minimum width for readability when many sprints)
-            const barWidth = Math.max(chartWidth / burnValues.length * 0.6, 3);
+            const barWidth = Math.max(chartWidth / burnValues.length * BAR_WIDTH_RATIO, MIN_BAR_WIDTH);
             ctx.fillStyle = '#3498db';
             
             burnValues.forEach((value, index) => {
@@ -1809,8 +1817,8 @@
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
-            ctx.moveTo(padding, getY(avg));
-            ctx.lineTo(padding + chartWidth, getY(avg));
+            ctx.moveTo(CHART_PADDING, getY(avg));
+            ctx.lineTo(CHART_PADDING + chartWidth, getY(avg));
             ctx.stroke();
             
             // Draw median line
@@ -1818,8 +1826,8 @@
             ctx.lineWidth = 2;
             ctx.setLineDash([10, 5]);
             ctx.beginPath();
-            ctx.moveTo(padding, getY(median));
-            ctx.lineTo(padding + chartWidth, getY(median));
+            ctx.moveTo(CHART_PADDING, getY(median));
+            ctx.lineTo(CHART_PADDING + chartWidth, getY(median));
             ctx.stroke();
             
             // Draw trend line
@@ -1847,7 +1855,7 @@
             labels.forEach((label, index) => {
                 const x = getX(index);
                 ctx.save();
-                ctx.translate(x, padding + chartHeight + 15);
+                ctx.translate(x, CHART_PADDING + chartHeight + 15);
                 ctx.rotate(LABEL_ROTATION_ANGLE);
                 ctx.fillText(label, 0, 0);
                 ctx.restore();
@@ -1855,7 +1863,7 @@
             
             // Draw legend
             const legendY = 30;
-            const legendX = padding + chartWidth - 250;
+            const legendX = CHART_PADDING + chartWidth - LEGEND_OFFSET_FROM_RIGHT;
             
             // Average
             ctx.strokeStyle = '#e74c3c';
