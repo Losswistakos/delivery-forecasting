@@ -440,8 +440,15 @@
         // Load sprints data from JSON file
         async function loadSprintsData() {
             try {
-                const response = await fetch('Planowanie_dane.json');
-                sprintsData = await response.json();
+                // Check if there's data in localStorage first
+                const savedData = localStorage.getItem('sprintsData');
+                if (savedData) {
+                    sprintsData = JSON.parse(savedData);
+                } else {
+                    // Load from JSON file if no localStorage data
+                    const response = await fetch('Planowanie_dane.json');
+                    sprintsData = await response.json();
+                }
                 displaySprints();
             } catch (error) {
                 console.error('Error loading sprints data:', error);
@@ -483,7 +490,7 @@
         // Format date to Polish format (DD.MM.YYYY)
         function formatDate(dateString) {
             if (!dateString) return '-';
-            const date = new Date(dateString);
+            const date = new Date(dateString + 'T00:00:00');
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const year = date.getFullYear();
@@ -596,18 +603,33 @@
             // Close modal
             closeModal();
             
-            // Show success message (optional)
-            alert('Sprint został pomyślnie dodany!');
+            // Show success message with a temporary banner
+            showSuccessMessage('Sprint został pomyślnie dodany!');
         }
 
-        // Check if there's data in localStorage on load
-        window.addEventListener('DOMContentLoaded', function() {
-            const savedData = localStorage.getItem('sprintsData');
-            if (savedData) {
-                sprintsData = JSON.parse(savedData);
-                displaySprints();
-            }
-        });
+        // Show success message
+        function showSuccessMessage(message) {
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #27ae60;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 4px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            banner.textContent = message;
+            document.body.appendChild(banner);
+            
+            setTimeout(() => {
+                banner.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => banner.remove(), 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>
