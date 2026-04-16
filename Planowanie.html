@@ -145,6 +145,16 @@
             to { opacity: 1; }
         }
 
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
         .modal-content {
             background-color: white;
             margin: 5% auto;
@@ -508,13 +518,21 @@
             const endDateInput = document.getElementById('dataZakonczenia');
             
             if (startDateInput.value) {
-                const startDate = new Date(startDateInput.value);
-                const endDate = new Date(startDate);
+                // Parse date components to avoid timezone issues
+                const parts = startDateInput.value.split('-');
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                const day = parseInt(parts[2], 10);
+                
+                const startDate = new Date(year, month, day);
+                const endDate = new Date(year, month, day);
                 endDate.setDate(endDate.getDate() + 14); // Add 14 days
                 
                 // Format date as YYYY-MM-DD for input
-                const formattedDate = endDate.toISOString().split('T')[0];
-                endDateInput.value = formattedDate;
+                const endYear = endDate.getFullYear();
+                const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+                const endDay = String(endDate.getDate()).padStart(2, '0');
+                endDateInput.value = `${endYear}-${endMonth}-${endDay}`;
             }
         }
 
@@ -562,7 +580,7 @@
                 const field = document.getElementById(fieldId);
                 const errorMsg = document.getElementById(fieldId + '-error');
                 
-                if (!field.value || field.value === '') {
+                if (!field.value) {
                     field.classList.add('error');
                     if (errorMsg) errorMsg.style.display = 'block';
                     isValid = false;
@@ -616,10 +634,13 @@
             const formData = {
                 numerSprintu: parseInt(document.getElementById('numerSprintu').value),
                 dataRozpoczecia: document.getElementById('dataRozpoczecia').value,
-                dataZakonczenia: document.getElementById('dataZakonczenia').value || null,
+                dataZakonczenia: document.getElementById('dataZakonczenia').value === '' ? 
+                    null : document.getElementById('dataZakonczenia').value,
                 kwartal: document.getElementById('kwartal').value,
-                liczbaPlanowanychSP: document.getElementById('liczbaPlanowanychSP').value ? 
-                    parseInt(document.getElementById('liczbaPlanowanychSP').value) : null,
+                liczbaPlanowanychSP: (() => {
+                    const value = document.getElementById('liczbaPlanowanychSP').value;
+                    return value ? parseInt(value) : null;
+                })(),
                 liczbaUkonczonychSP: parseInt(document.getElementById('liczbaUkonczonychSP').value),
                 celSpelniony: document.getElementById('celSpelniony').checked,
                 nieUwzgledniaj: document.getElementById('nieUwzgledniaj').checked
