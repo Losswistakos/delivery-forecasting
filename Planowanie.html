@@ -323,6 +323,116 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background-color: #ecf0f1;
+        }
+
+        .icon-btn.edit:hover {
+            background-color: #d4edda;
+        }
+
+        .icon-btn.delete:hover {
+            background-color: #f8d7da;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            margin: 0 !important;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .filters-section {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+
+        .clear-filters-btn {
+            align-self: flex-end;
+            padding: 8px 16px;
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .clear-filters-btn:hover {
+            background-color: #7f8c8d;
+        }
     </style>
 </head>
 <body>
@@ -339,6 +449,28 @@
                 <span style="font-size: 20px;">+</span>
                 <span>Dodaj sprint</span>
             </button>
+            
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label for="filterYear">Rok</label>
+                    <select id="filterYear" onchange="applyFilters()">
+                        <option value="">Wszystkie lata</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterQuarter">Kwartał</label>
+                    <select id="filterQuarter" onchange="applyFilters()">
+                        <option value="">Wszystkie kwartały</option>
+                        <option value="Q1">Q1</option>
+                        <option value="Q2">Q2</option>
+                        <option value="Q3">Q3</option>
+                        <option value="Q4">Q4</option>
+                    </select>
+                </div>
+                <button class="clear-filters-btn" onclick="clearFilters()">Wyczyść filtry</button>
+            </div>
+            
             <div class="table-container">
                 <table id="sprints-table">
                     <thead>
@@ -351,11 +483,12 @@
                             <th class="numeric">Ukończone SP</th>
                             <th class="center">Cel Spełniony</th>
                             <th class="center">Nie Uwzględniaj</th>
+                            <th class="center">Akcje</th>
                         </tr>
                     </thead>
                     <tbody id="sprints-tbody">
                         <tr>
-                            <td colspan="8" class="no-data">Ładowanie danych...</td>
+                            <td colspan="9" class="no-data">Ładowanie danych...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -367,14 +500,16 @@
     <div id="addSprintModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Dodaj nowy sprint</h2>
+                <h2 id="modalTitle">Dodaj nowy sprint</h2>
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             
             <form id="sprintForm">
+                <input type="hidden" id="editIndex" value="-1">
+                
                 <div class="form-group">
                     <label for="numerSprintu" class="required">Numer sprintu</label>
-                    <input type="number" id="numerSprintu" name="numerSprintu" min="1" required>
+                    <input type="text" id="numerSprintu" name="numerSprintu" maxlength="20" required>
                     <div class="error-message" id="numerSprintu-error">To pole jest wymagane</div>
                 </div>
 
@@ -389,10 +524,35 @@
                     <input type="date" id="dataZakonczenia" name="dataZakonczenia">
                 </div>
 
-                <div class="form-group">
-                    <label for="kwartal" class="required">Kwartał</label>
-                    <input type="text" id="kwartal" name="kwartal" placeholder="np. Q1 2025" required>
-                    <div class="error-message" id="kwartal-error">To pole jest wymagane</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="rok" class="required">Rok</label>
+                        <input type="number" id="rok" name="rok" min="2020" max="2100" required>
+                        <div class="error-message" id="rok-error">To pole jest wymagane</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">Kwartał</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q1" name="kwartal" value="Q1" required>
+                                <label for="q1">Q1</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2" name="kwartal" value="Q2">
+                                <label for="q2">Q2</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3" name="kwartal" value="Q3">
+                                <label for="q3">Q3</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4" name="kwartal" value="Q4">
+                                <label for="q4">Q4</label>
+                            </div>
+                        </div>
+                        <div class="error-message" id="kwartal-error">To pole jest wymagane</div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -430,10 +590,15 @@
 
     <script>
         let sprintsData = { sprints: [] };
+        let currentFilters = { year: '', quarter: '' };
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadSprintsData();
+            
+            // Set default year to current year
+            const currentYear = new Date().getFullYear();
+            document.getElementById('rok').value = currentYear;
             
             // Auto-calculate end date when start date changes
             document.getElementById('dataRozpoczecia').addEventListener('change', function() {
@@ -459,12 +624,50 @@
                     const response = await fetch('Planowanie_dane.json');
                     sprintsData = await response.json();
                 }
+                populateYearFilter();
                 displaySprints();
             } catch (error) {
                 console.error('Error loading sprints data:', error);
                 document.getElementById('sprints-tbody').innerHTML = 
-                    '<tr><td colspan="8" class="no-data">Błąd podczas ładowania danych</td></tr>';
+                    '<tr><td colspan="9" class="no-data">Błąd podczas ładowania danych</td></tr>';
             }
+        }
+
+        // Populate year filter with available years
+        function populateYearFilter() {
+            const years = new Set();
+            sprintsData.sprints.forEach(sprint => {
+                // Extract year from kwartal field (e.g., "Q1 2025")
+                const match = sprint.kwartal.match(/\d{4}/);
+                if (match) {
+                    years.add(match[0]);
+                }
+            });
+            
+            const yearFilter = document.getElementById('filterYear');
+            yearFilter.innerHTML = '<option value="">Wszystkie lata</option>';
+            
+            Array.from(years).sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearFilter.appendChild(option);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            currentFilters.year = document.getElementById('filterYear').value;
+            currentFilters.quarter = document.getElementById('filterQuarter').value;
+            displaySprints();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filterYear').value = '';
+            document.getElementById('filterQuarter').value = '';
+            currentFilters = { year: '', quarter: '' };
+            displaySprints();
         }
 
         // Display sprints in table
@@ -472,12 +675,42 @@
             const tbody = document.getElementById('sprints-tbody');
             
             if (!sprintsData.sprints || sprintsData.sprints.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="no-data">Brak danych do wyświetlenia</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="no-data">Brak danych do wyświetlenia</td></tr>';
+                return;
+            }
+
+            // Sort by start date (ascending)
+            const sortedSprints = [...sprintsData.sprints].sort((a, b) => {
+                const dateA = new Date(a.dataRozpoczecia);
+                const dateB = new Date(b.dataRozpoczecia);
+                return dateA - dateB;
+            });
+
+            // Apply filters
+            const filteredSprints = sortedSprints.filter(sprint => {
+                let passFilter = true;
+                
+                if (currentFilters.year) {
+                    passFilter = passFilter && sprint.kwartal.includes(currentFilters.year);
+                }
+                
+                if (currentFilters.quarter) {
+                    passFilter = passFilter && sprint.kwartal.startsWith(currentFilters.quarter);
+                }
+                
+                return passFilter;
+            });
+
+            if (filteredSprints.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="no-data">Brak danych spełniających kryteria filtrowania</td></tr>';
                 return;
             }
 
             tbody.innerHTML = '';
-            sprintsData.sprints.forEach(sprint => {
+            filteredSprints.forEach((sprint, index) => {
+                // Find the original index in sprintsData.sprints
+                const originalIndex = sprintsData.sprints.indexOf(sprint);
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${sprint.numerSprintu}</td>
@@ -492,6 +725,24 @@
                         </span>
                     </td>
                     <td class="center">${sprint.nieUwzgledniaj ? 'Tak' : 'Nie'}</td>
+                    <td class="center">
+                        <div class="action-buttons">
+                            <button class="icon-btn edit" onclick="editSprint(${originalIndex})" title="Edytuj">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="icon-btn delete" onclick="deleteSprint(${originalIndex})" title="Usuń">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
@@ -537,9 +788,66 @@
         }
 
         // Open modal
-        function openModal() {
+        function openModal(editMode = false) {
+            const currentYear = new Date().getFullYear();
+            document.getElementById('rok').value = currentYear;
+            
+            if (!editMode) {
+                document.getElementById('modalTitle').textContent = 'Dodaj nowy sprint';
+            }
+            
             document.getElementById('addSprintModal').style.display = 'block';
             document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+        }
+
+        // Edit sprint
+        function editSprint(index) {
+            const sprint = sprintsData.sprints[index];
+            
+            // Set modal title
+            document.getElementById('modalTitle').textContent = 'Edytuj sprint';
+            
+            // Set edit index
+            document.getElementById('editIndex').value = index;
+            
+            // Fill form with sprint data
+            document.getElementById('numerSprintu').value = sprint.numerSprintu;
+            document.getElementById('dataRozpoczecia').value = sprint.dataRozpoczecia;
+            document.getElementById('dataZakonczenia').value = sprint.dataZakonczenia || '';
+            
+            // Extract year and quarter from kwartal field
+            const kwartalMatch = sprint.kwartal.match(/(Q[1-4])\s+(\d{4})/);
+            if (kwartalMatch) {
+                document.getElementById('rok').value = kwartalMatch[2];
+                const quarterValue = kwartalMatch[1];
+                document.querySelector(`input[name="kwartal"][value="${quarterValue}"]`).checked = true;
+            }
+            
+            document.getElementById('liczbaPlanowanychSP').value = sprint.liczbaPlanowanychSP || '';
+            document.getElementById('liczbaUkonczonychSP').value = sprint.liczbaUkonczonychSP;
+            document.getElementById('celSpelniony').checked = sprint.celSpelniony;
+            document.getElementById('nieUwzgledniaj').checked = sprint.nieUwzgledniaj;
+            
+            // Open modal in edit mode
+            openModal(true);
+        }
+
+        // Delete sprint
+        function deleteSprint(index) {
+            const sprint = sprintsData.sprints[index];
+            
+            if (confirm(`Czy na pewno chcesz usunąć sprint ${sprint.numerSprintu}?`)) {
+                sprintsData.sprints.splice(index, 1);
+                
+                // Save to localStorage
+                localStorage.setItem('sprintsData', JSON.stringify(sprintsData));
+                
+                // Refresh display and filters
+                populateYearFilter();
+                displaySprints();
+                
+                showSuccessMessage('Sprint został pomyślnie usunięty!');
+            }
         }
 
         // Close modal
@@ -560,6 +868,13 @@
         // Reset form
         function resetForm() {
             document.getElementById('sprintForm').reset();
+            document.getElementById('editIndex').value = '-1';
+            document.getElementById('modalTitle').textContent = 'Dodaj nowy sprint';
+            
+            // Reset to current year
+            const currentYear = new Date().getFullYear();
+            document.getElementById('rok').value = currentYear;
+            
             // Hide all error messages
             document.querySelectorAll('.error-message').forEach(el => {
                 el.style.display = 'none';
@@ -574,8 +889,20 @@
         function validateForm() {
             let isValid = true;
             
+            // Sprint number (text field)
+            const numerSprintu = document.getElementById('numerSprintu');
+            const numerSprintuError = document.getElementById('numerSprintu-error');
+            if (!numerSprintu.value || numerSprintu.value.trim() === '') {
+                numerSprintu.classList.add('error');
+                if (numerSprintuError) numerSprintuError.style.display = 'block';
+                isValid = false;
+            } else {
+                numerSprintu.classList.remove('error');
+                if (numerSprintuError) numerSprintuError.style.display = 'none';
+            }
+            
             // Numeric required fields
-            const numericFields = ['numerSprintu', 'liczbaUkonczonychSP'];
+            const numericFields = ['liczbaUkonczonychSP', 'rok'];
             numericFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 const errorMsg = document.getElementById(fieldId + '-error');
@@ -590,21 +917,15 @@
                 }
             });
             
-            // Text required fields
-            const textFields = ['kwartal'];
-            textFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                const errorMsg = document.getElementById(fieldId + '-error');
-                
-                if (!field.value || field.value.trim() === '') {
-                    field.classList.add('error');
-                    if (errorMsg) errorMsg.style.display = 'block';
-                    isValid = false;
-                } else {
-                    field.classList.remove('error');
-                    if (errorMsg) errorMsg.style.display = 'none';
-                }
-            });
+            // Quarter radio buttons
+            const quarterSelected = document.querySelector('input[name="kwartal"]:checked');
+            const kwartalError = document.getElementById('kwartal-error');
+            if (!quarterSelected) {
+                if (kwartalError) kwartalError.style.display = 'block';
+                isValid = false;
+            } else {
+                if (kwartalError) kwartalError.style.display = 'none';
+            }
             
             // Date required fields
             const dateFields = ['dataRozpoczecia'];
@@ -631,12 +952,16 @@
                 return;
             }
 
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+            const rok = document.getElementById('rok').value;
+            const kwartal = document.querySelector('input[name="kwartal"]:checked').value;
+            
             const formData = {
-                numerSprintu: parseInt(document.getElementById('numerSprintu').value),
+                numerSprintu: document.getElementById('numerSprintu').value.trim(),
                 dataRozpoczecia: document.getElementById('dataRozpoczecia').value,
                 dataZakonczenia: document.getElementById('dataZakonczenia').value === '' ? 
                     null : document.getElementById('dataZakonczenia').value,
-                kwartal: document.getElementById('kwartal').value,
+                kwartal: `${kwartal} ${rok}`,
                 liczbaPlanowanychSP: (() => {
                     const value = document.getElementById('liczbaPlanowanychSP').value;
                     return value ? parseInt(value) : null;
@@ -646,24 +971,25 @@
                 nieUwzgledniaj: document.getElementById('nieUwzgledniaj').checked
             };
 
-            // Add new sprint to data
-            sprintsData.sprints.push(formData);
+            if (editIndex >= 0) {
+                // Edit existing sprint
+                sprintsData.sprints[editIndex] = formData;
+                showSuccessMessage('Sprint został pomyślnie zaktualizowany!');
+            } else {
+                // Add new sprint
+                sprintsData.sprints.push(formData);
+                showSuccessMessage('Sprint został pomyślnie dodany!');
+            }
             
-            // Sort by sprint number
-            sprintsData.sprints.sort((a, b) => a.numerSprintu - b.numerSprintu);
-
-            // Note: In a real application, you would save to a backend server here
-            // For this demo, we'll save to localStorage and update the display
+            // Save to localStorage
             localStorage.setItem('sprintsData', JSON.stringify(sprintsData));
             
-            // Refresh the table
+            // Refresh display and filters
+            populateYearFilter();
             displaySprints();
             
             // Close modal
             closeModal();
-            
-            // Show success message with a temporary banner
-            showSuccessMessage('Sprint został pomyślnie dodany!');
         }
 
         // Show success message
