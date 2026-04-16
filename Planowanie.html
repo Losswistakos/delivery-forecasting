@@ -490,11 +490,16 @@
         // Format date to Polish format (DD.MM.YYYY)
         function formatDate(dateString) {
             if (!dateString) return '-';
-            const date = new Date(dateString + 'T00:00:00');
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}.${month}.${year}`;
+            // Parse date components to avoid timezone issues
+            const parts = dateString.split('-');
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10);
+            const day = parseInt(parts[2], 10);
+            const date = new Date(year, month - 1, day);
+            
+            const dayStr = String(date.getDate()).padStart(2, '0');
+            const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+            return `${dayStr}.${monthStr}.${date.getFullYear()}`;
         }
 
         // Auto-fill end date (2 weeks from start date)
@@ -550,13 +555,46 @@
         // Validate form
         function validateForm() {
             let isValid = true;
-            const requiredFields = ['numerSprintu', 'dataRozpoczecia', 'kwartal', 'liczbaUkonczonychSP'];
             
-            requiredFields.forEach(fieldId => {
+            // Numeric required fields
+            const numericFields = ['numerSprintu', 'liczbaUkonczonychSP'];
+            numericFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorMsg = document.getElementById(fieldId + '-error');
+                
+                if (!field.value || field.value === '') {
+                    field.classList.add('error');
+                    if (errorMsg) errorMsg.style.display = 'block';
+                    isValid = false;
+                } else {
+                    field.classList.remove('error');
+                    if (errorMsg) errorMsg.style.display = 'none';
+                }
+            });
+            
+            // Text required fields
+            const textFields = ['kwartal'];
+            textFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 const errorMsg = document.getElementById(fieldId + '-error');
                 
                 if (!field.value || field.value.trim() === '') {
+                    field.classList.add('error');
+                    if (errorMsg) errorMsg.style.display = 'block';
+                    isValid = false;
+                } else {
+                    field.classList.remove('error');
+                    if (errorMsg) errorMsg.style.display = 'none';
+                }
+            });
+            
+            // Date required fields
+            const dateFields = ['dataRozpoczecia'];
+            dateFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorMsg = document.getElementById(fieldId + '-error');
+                
+                if (!field.value) {
                     field.classList.add('error');
                     if (errorMsg) errorMsg.style.display = 'block';
                     isValid = false;
