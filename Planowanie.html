@@ -1054,7 +1054,8 @@
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
-            const currentQuarterNum = Math.ceil(currentMonth / MONTHS_PER_QUARTER);
+            // Correct formula: months 1-3 → Q1, 4-6 → Q2, 7-9 → Q3, 10-12 → Q4
+            const currentQuarterNum = Math.floor((currentMonth - 1) / MONTHS_PER_QUARTER) + 1;
             
             const currentQuarter = `Q${currentQuarterNum} ${currentYear}`;
             
@@ -1513,7 +1514,8 @@
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth() + 1;
-            const quarter = Math.ceil(month / MONTHS_PER_QUARTER);
+            // Correct formula: months 1-3 → Q1, 4-6 → Q2, 7-9 → Q3, 10-12 → Q4
+            const quarter = Math.floor((month - 1) / MONTHS_PER_QUARTER) + 1;
             return `Q${quarter} ${year}`;
         }
 
@@ -1703,8 +1705,15 @@
             
             // Set canvas size with DPI scaling for crisp rendering
             const dpr = window.devicePixelRatio || 1;
-            const displayWidth = canvas.offsetWidth;
-            const displayHeight = canvas.offsetHeight;
+            // Use offsetWidth with fallback to clientWidth or default
+            const displayWidth = canvas.offsetWidth || canvas.clientWidth || 800;
+            const displayHeight = canvas.offsetHeight || canvas.clientHeight || 400;
+            
+            // Ensure non-zero dimensions
+            if (displayWidth === 0 || displayHeight === 0) {
+                console.warn('Canvas has zero dimensions, skipping render');
+                return;
+            }
             
             canvas.width = displayWidth * dpr;
             canvas.height = displayHeight * dpr;
@@ -1783,7 +1792,8 @@
             }
             
             // Draw bars
-            const barWidth = chartWidth / burnValues.length * 0.6;
+            // Calculate bar width once (with minimum width for readability when many sprints)
+            const barWidth = Math.max(chartWidth / burnValues.length * 0.6, 3);
             ctx.fillStyle = '#3498db';
             
             burnValues.forEach((value, index) => {
