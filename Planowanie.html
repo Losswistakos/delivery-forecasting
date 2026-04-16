@@ -1732,12 +1732,10 @@
             // Find min and max for scaling - handle edge cases
             let maxValue = 0;
             if (burnValues.length > 0) {
-                maxValue = Math.max(
-                    Math.max.apply(null, burnValues),
-                    avg,
-                    median,
-                    Math.max.apply(null, trend)
-                ) * 1.1;
+                // Use reduce to avoid stack overflow with large arrays
+                const maxBurn = burnValues.reduce((max, val) => Math.max(max, val), 0);
+                const maxTrend = trend.reduce((max, val) => Math.max(max, val), 0);
+                maxValue = Math.max(maxBurn, avg, median, maxTrend) * 1.1;
             }
             const minValue = 0;
             
@@ -1886,6 +1884,9 @@
             const n = values.length;
             if (n === 0) return [];
             
+            // For single value, return horizontal line at that value
+            if (n === 1) return [values[0]];
+            
             let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
             
             values.forEach((y, x) => {
@@ -1895,7 +1896,16 @@
                 sumX2 += x * x;
             });
             
-            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const denominator = n * sumX2 - sumX * sumX;
+            
+            // Check for division by zero (all x values are the same)
+            if (denominator === 0) {
+                // Return horizontal line at average y value
+                const avgY = sumY / n;
+                return values.map(() => avgY);
+            }
+            
+            const slope = (n * sumXY - sumX * sumY) / denominator;
             const intercept = (sumY - slope * sumX) / n;
             
             return values.map((_, x) => slope * x + intercept);
